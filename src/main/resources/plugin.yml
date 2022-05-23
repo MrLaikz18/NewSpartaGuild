@@ -1,0 +1,4 @@
+name: SpartaGuild
+version: '${project.version}'
+main: fr.mrlaikz.spartaguild.SpartaGuild
+api-version: 1.18
