@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class GuildManager {
 
@@ -28,17 +29,19 @@ public class GuildManager {
     private List<Player> spy = new ArrayList<Player>();
 
     public void load() {
-        List<Guild> gds = sql.getAllGuildes();
-        List<GPlayer> gps = sql.getAllGPlayers();
-        for(Guild g : gds) {
-            guildes.put(g.getUUID(), g);
-            for(GPlayer pl : gps) {
-                gplayers.put(pl.getUUID(), pl);
-                if(pl.getGuildUUID().equals(g.getUUID())) {
-                    g.addMember(pl);
+        sql.getAllGuildAsync().thenAccept(gs -> {
+            sql.getAllGPlayersAsync().thenAccept(gp -> {
+                for(Guild g : gs) {
+                    guildes.put(g.getUUID(), g);
+                    for(GPlayer gpp : gp) {
+                        gplayers.put(gpp.getUUID(), gpp);
+                        if(gpp.getGuildUUID().equals(g.getUUID())) {
+                            g.addMember(gpp);
+                        }
+                    }
                 }
-            }
-        }
+            });
+        });
     }
 
     public void addGPlayer(GPlayer gp) {
