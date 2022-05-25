@@ -77,4 +77,33 @@ public class GPlayer {
         invites.remove(uuid);
     }
 
+    public void setChat(boolean b) {
+        this.chat = b;
+    }
+
+    public void promote() {
+        switch(rank) {
+            case MEMBER:
+                rank = Rank.MODERATOR;
+                break;
+            case MODERATOR:
+                rank = Rank.ADMIN;
+                break;
+            default:
+                break;
+        }
+    }
+
+    public void demote() {
+        switch(rank) {
+            case ADMIN:
+                this.rank = Rank.MODERATOR;
+                break;
+            case MODERATOR:
+                this.rank = Rank.MEMBER;
+            default:
+                break;
+        }
+    }
+
 }

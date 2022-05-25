@@ -5,7 +5,9 @@ import fr.mrlaikz.spartaguild.database.Database;
 import fr.mrlaikz.spartaguild.database.SQLGetter;
 import fr.mrlaikz.spartaguild.listeners.ChatListener;
 import fr.mrlaikz.spartaguild.manager.GuildManager;
+import net.milkbowl.vault.economy.Economy;
 import org.bukkit.ChatColor;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.sql.Connection;
@@ -19,6 +21,7 @@ public final class SpartaGuild extends JavaPlugin {
     //DATABASE
     private Database db;
     private SQLGetter sql;
+    private static Economy econ = null;
 
     //MANAGERS
     private GuildManager guildManager;
@@ -43,6 +46,7 @@ public final class SpartaGuild extends JavaPlugin {
         guildManager = new GuildManager(this);
 
         //MISC
+        setupEconomy();
         instance = this;
         getLogger().info("Plugin Actif");
     }
@@ -66,6 +70,23 @@ public final class SpartaGuild extends JavaPlugin {
 
     public GuildManager getGuildManager() {
         return guildManager;
+    }
+
+    private boolean setupEconomy() {
+        if (getServer().getPluginManager().getPlugin("Vault") == null) {
+            return false;
+        }
+        RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
+        if (rsp == null) {
+            return false;
+        }
+        econ = rsp.getProvider();
+        return econ != null;
+
+    }
+
+    public static Economy getEconomy() {
+        return econ;
     }
 
 }

@@ -43,7 +43,7 @@ public class GuildManager {
 
     public void addGPlayer(GPlayer gp) {
         gplayers.put(gp.getUUID(), gp);
-        //UPDATE SQL
+        sql.addGPlayerAsync(gp);
     }
 
     public Guild getGuild(UUID uuid) {
@@ -51,22 +51,34 @@ public class GuildManager {
     }
 
     public void joinGuild(GPlayer gp, Guild guild) {
-        guild.addMember(gp);
-        gp.setGuild(guild.getUUID());
-        gp.setRank(Rank.MEMBER);
+        Guild g = guildes.get(guild.getUUID());
+        GPlayer gpl = gplayers.get(gp.getUUID());
+        g.addMember(gpl);
+        gpl.setGuild(guild.getUUID());
+        gpl.setRank(Rank.MEMBER);
+        sql.updateGPlayerAsync(gp);
+    }
+
+    public void leaveGuild(GPlayer gp) {
+        Guild g = guildes.get(gp.getGuildUUID());
+        GPlayer gpl = gplayers.get(gp.getUUID());
+        g.removeMember(gpl);
+        gpl.setGuild(null);
+        gpl.setRank(null);
+        sql.updateGPlayerAsync(gp);
     }
 
     public void createGuild(String name, GPlayer owner) {
         Guild g = new Guild(name, owner);
         guildes.put(g.getUUID(), g);
-        //UPDATE SQL
+        sql.addGuildAsync(g);
     }
 
     public void disbandGuild(UUID uuid) {
         Guild g = guildes.get(uuid);
-        guildes.remove(uuid);
         g.disband();
-        //UPDATE SQL
+        guildes.remove(uuid);
+        sql.removeGuildAsync(g);
     }
 
     public GPlayer getGPlayer(UUID uuid) {
@@ -96,6 +108,9 @@ public class GuildManager {
         return spy.contains(p);
     }
 
+    public void updateGPlayer(GPlayer gp) {
+
+    }
 
 
 }

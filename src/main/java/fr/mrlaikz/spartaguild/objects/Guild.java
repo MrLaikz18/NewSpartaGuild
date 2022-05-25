@@ -1,6 +1,8 @@
 package fr.mrlaikz.spartaguild.objects;
 
+import fr.mrlaikz.spartaguild.SpartaGuild;
 import fr.mrlaikz.spartaguild.enums.Rank;
+import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,9 +50,17 @@ public class Guild {
         return members;
     }
 
+    public double getBalance() {
+        return eco.getBalance();
+    }
+
     //SETTERS
     public void addMember(GPlayer pl) {
         members.add(pl);
+    }
+
+    public void removeMember(GPlayer pl) {
+        members.remove(pl);
     }
 
     public void disband() {
@@ -59,6 +69,16 @@ public class Guild {
             p.setRank(null);
         }
         members.clear();
+    }
+
+    public void deposit(double amount, Player p) {
+        this.eco.deposit(amount);
+        SpartaGuild.getEconomy().withdrawPlayer(p, amount);
+    }
+
+    public void withdraw(double amount, Player p) {
+        this.eco.withdraw(amount);
+        SpartaGuild.getEconomy().depositPlayer(p, amount);
     }
 
 }
