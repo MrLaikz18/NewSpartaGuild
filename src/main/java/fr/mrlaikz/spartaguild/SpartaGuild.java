@@ -4,6 +4,7 @@ import fr.mrlaikz.spartaguild.commands.GuildCMD;
 import fr.mrlaikz.spartaguild.database.Database;
 import fr.mrlaikz.spartaguild.database.SQLGetter;
 import fr.mrlaikz.spartaguild.listeners.ChatListener;
+import fr.mrlaikz.spartaguild.listeners.MessageListener;
 import fr.mrlaikz.spartaguild.manager.GuildManager;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.ChatColor;
@@ -28,26 +29,32 @@ public final class SpartaGuild extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        //CONFIG
+        saveDefaultConfig();
+        instance = this;
+
         //DATABASE
         try {
+            db = new Database(this);
             db.connect();
             sql = new SQLGetter(this);
         } catch(SQLException | ClassNotFoundException e) {
             e.printStackTrace();
         }
 
-        //COMMANDS
-        getCommand("guild").setExecutor(new GuildCMD(this));
+        //MANAGERS
+        guildManager = new GuildManager(this);
+        guildManager.load();
 
         //LISTENERS
         getServer().getPluginManager().registerEvents(new ChatListener(this), this);
+        getServer().getPluginManager().registerEvents(new MessageListener(this), this);
 
-        //MANAGERS
-        guildManager = new GuildManager(this);
+        //COMMANDS
+        getCommand("guild").setExecutor(new GuildCMD(this));
 
         //MISC
         setupEconomy();
-        instance = this;
         getLogger().info("Plugin Actif");
     }
 

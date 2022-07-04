@@ -28,7 +28,7 @@ public class GPlayer {
     public GPlayer(UUID uuid) {
         this.uuid = uuid;
         this.guild = null;
-        this.rank = null;
+        this.rank = Rank.NULL;
         this.chat = false;
         this.invites = new HashMap<>();
     }

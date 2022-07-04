@@ -26,6 +26,31 @@ public class SQLGetter {
         this.db = plugin.getDatabase();
     }
 
+    //LOAD TABLES
+    public void loadTables() {
+        try {
+            PreparedStatement ps = db.prepareStatement("CREATE TABLE IF NOT EXISTS guildes(" +
+                    "id INTEGER PRIMARY KEY NOT NULL," +
+                    "name VARCHAR(255)," +
+                    "uuid VARCHAR(255)," +
+                    "balance DOUBLE);");
+            ps.executeUpdate();
+        } catch(SQLException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            PreparedStatement ps = db.prepareStatement("CREATE TABLE IF NOT EXISTS gplayers(" +
+                    "id INT PRIMARY KEY NOT NULL," +
+                    "uuid VARCHAR(255)," +
+                    "guild VARCHAR(255)," +
+                    "rank VARCHAR(255));");
+            ps.executeUpdate();
+        } catch(SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     //GET ALL GUILDES
     public List<Guild> getAllGuildes() {
         List<Guild> ret = new ArrayList<Guild>();
@@ -53,7 +78,12 @@ public class SQLGetter {
             ResultSet rs = ps.executeQuery();
             while(rs.next()) {
                 UUID uuid = UUID.fromString(rs.getString("uuid"));
-                UUID g = UUID.fromString(rs.getString("guilde"));
+                UUID g;
+                if(rs.getString("guild").equals("")) {
+                    g = null;
+                } else {
+                    g = UUID.fromString(rs.getString("guild"));
+                }
                 Rank rank = Rank.valueOf(rs.getString("rank"));
                 GPlayer gpl = new GPlayer(uuid, g, rank, false);
                 ret.add(gpl);
@@ -67,8 +97,12 @@ public class SQLGetter {
     //UPDATE GPLAYER
     public void updateGPlayer(GPlayer gp) {
         try {
-            PreparedStatement ps = db.prepareStatement("UPDATE gplayers SET guilde = ?, rank = ? WHERE uuid = ?");
-            ps.setString(1, gp.getGuildUUID().toString());
+            PreparedStatement ps = db.prepareStatement("UPDATE gplayers SET guild = ?, rank = ? WHERE uuid = ?");
+            String gparam = "";
+            if(gp.getGuildUUID() != null) {
+                gparam = gp.getGuildUUID().toString();
+            }
+            ps.setString(1, gparam);
             ps.setString(2, gp.getRank().toString());
             ps.setString(3, gp.getUUID().toString());
             ps.executeUpdate();
@@ -92,8 +126,9 @@ public class SQLGetter {
     //CREATE GUILD
     public void addGuild(Guild g) {
         try {
-            PreparedStatement ps = db.prepareStatement("INSERT INTO guildes (uuid, balance) VALUES(?, 0)");
-            ps.setString(1, g.getUUID().toString());
+            PreparedStatement ps = db.prepareStatement("INSERT INTO guildes (name, uuid, balance) VALUES(?, ?, 0)");
+            ps.setString(1, g.getName());
+            ps.setString(2, g.getUUID().toString());
             ps.executeUpdate();
         } catch(SQLException e) {
             e.printStackTrace();
@@ -116,8 +151,12 @@ public class SQLGetter {
         try {
             PreparedStatement ps = db.prepareStatement("INSERT INTO gplayers (uuid, guild, rank) VALUES(?, ?, ?)");
             ps.setString(1, gp.getUUID().toString());
-            ps.setString(2, gp.getGuildUUID().toString());
-            ps.setString(3, null);
+            String gparam = "";
+            if(gp.getGuildUUID() != null) {
+                gparam = gp.getGuildUUID().toString();
+            }
+            ps.setString(2, gparam);
+            ps.setString(3, gp.getRank().toString());
             ps.executeUpdate();
         } catch(SQLException e) {
             e.printStackTrace();

@@ -12,7 +12,7 @@ public class Guild {
 
     private String name;
     private UUID uuid;
-    private List<GPlayer> members;
+    private List<GPlayer> members = new ArrayList<GPlayer>();
     private Economy eco;
 
     public Guild(String name, UUID uuid, List<GPlayer> members, double bal) {
@@ -33,7 +33,6 @@ public class Guild {
         this.uuid = UUID.randomUUID();
         this.members = new ArrayList<GPlayer>();
         members.add(owner);
-        owner.setRank(Rank.OWNER);
         this.eco = new Economy(this.uuid, 0);
     }
 
@@ -64,10 +63,6 @@ public class Guild {
     }
 
     public void disband() {
-        for(GPlayer p : members) {
-            p.setGuild(null);
-            p.setRank(null);
-        }
         members.clear();
     }
 

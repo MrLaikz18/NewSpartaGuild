@@ -8,6 +8,7 @@ import fr.mrlaikz.spartaguild.objects.GPlayer;
 import fr.mrlaikz.spartaguild.objects.Guild;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -25,6 +26,7 @@ public class GuildCMD implements CommandExecutor {
     public GuildCMD(SpartaGuild plugin) {
         this.plugin = plugin;
         this.sql = new SQLGetter(plugin);
+        this.guildManager = plugin.getGuildManager();
     }
 
     @Override
@@ -37,6 +39,7 @@ public class GuildCMD implements CommandExecutor {
                 GPlayer gp = guildManager.getGPlayer(p.getUniqueId());
 
                 if(args.length == 0) {
+                    p.sendMessage("");
                     p.sendMessage("§b========== §6§lSparta'§c§lGuild §b==========");
                     p.sendMessage("");
                     p.sendMessage("§6/guild: §7Affichage de l'aide générale"); //FAIT
@@ -50,9 +53,15 @@ public class GuildCMD implements CommandExecutor {
                     p.sendMessage("§6/guild promote <pseudo>: §7Augmenter le rank d'un joueur"); //FAIT
                     p.sendMessage("§6/guild demote <pseudo>: §7Baisser le rank d'un joueur"); //FAIT
                     p.sendMessage("§6/guild rank <pseudo>: §7Obtenir le rank d'un joueur");  //FAIT
+                    p.sendMessage("§6/guild lead <pseudo>: §7Donner le commandement de la guilde");
+                    p.sendMessage("");
                 }
 
                 if(args.length == 1) {
+
+                    if(args[0].equalsIgnoreCase("test")) {
+                        guildManager.info(p);
+                    }
 
                     //GUILD SPY
                     if(args[0].equalsIgnoreCase("spy") && p.hasPermission("spartaguild.spy")) {
@@ -87,14 +96,25 @@ public class GuildCMD implements CommandExecutor {
                             p.sendMessage("§cVous n'avez pas de guildes !");
                             return false;
                         }
+                        Guild g = guildManager.getGuild(gp.getGuildUUID());
+                        if(gp.getRank().equals(Rank.OWNER)) {
+                            for(GPlayer gpa : g.getMembers()) {
+                                Bukkit.getPlayer(gpa.getUUID()).sendMessage("§cVotre guilde a été dissoute !");
+                            }
+                            guildManager.disbandGuild(g.getUUID());
+                            return false;
+                        }
                         guildManager.leaveGuild(gp);
+                        for(GPlayer gpa : g.getMembers()) {
+                            Bukkit.getPlayer(gpa.getUUID()).sendMessage("§c"+p.getName()+" a quitté la guilde");
+                        }
                         p.sendMessage("§aVous avez bien quitté votre guilde");
                     }
 
                     //GUILD DISBAND
                     if(args[0].equalsIgnoreCase("disband")) {
                         if(gp == null || gp.getGuildUUID() == null) {
-                            p.sendMessage("§cVous n'avez pas de guildes !");
+                            p.sendMessage("§cVous n'avez pas de guilde !");
                             return false;
                         }
 
@@ -102,6 +122,7 @@ public class GuildCMD implements CommandExecutor {
                             p.sendMessage("§cVous n'avez pas la permission de faire cela !");
                             return false;
                         }
+
                         guildManager.disbandGuild(gp.getGuildUUID());
                         p.sendMessage("§aVotre guilde a bien été dissoute");
 
@@ -109,12 +130,14 @@ public class GuildCMD implements CommandExecutor {
 
                     //GUILD ECO
                     if(args[0].equalsIgnoreCase("eco")) {
+                        p.sendMessage("");
                         p.sendMessage("§b========== §6§lSparta'§c§lGuild §b==========");
                         p.sendMessage("");
                         p.sendMessage("§6/guild eco: §7Affichage de l'aide économique");
                         p.sendMessage("§6/guild eco bal: §7Affichage de la balance");
                         p.sendMessage("§6/guild eco deposit <montant>: §7Déposer de l'argent sur la banque de guilde");
                         p.sendMessage("§6/guild eco withdraw <montant>: §7Retirer de l'argent sur la banque de guilde");
+                        p.sendMessage("");
                     }
 
                 }
@@ -139,10 +162,17 @@ public class GuildCMD implements CommandExecutor {
                         for(UUID u : gp.getInvites()) {
                             if(guildManager.getGuild(u).getName().equals(gName)) {
                                 Guild g = guildManager.getGuild(u);
+                                for(GPlayer gpa : g.getMembers()) {
+                                    if(Bukkit.getOfflinePlayer(gpa.getUUID()).isOnline()) {
+                                        Bukkit.getPlayer(gpa.getUUID()).sendMessage("§a" + p.getName() + " a rejoint la guilde !");
+                                    }
+                                }
                                 guildManager.joinGuild(gp, g);
                                 p.sendMessage("§aVous avez bien rejoint la guilde " + g.getName());
+                                return false;
                             }
                         }
+                        p.sendMessage("§cVous n'avez pas d'invitations en cours !");
 
                     }
 
@@ -152,7 +182,11 @@ public class GuildCMD implements CommandExecutor {
 
                         if(gp == null) {
                             gp = new GPlayer(p.getUniqueId());
+                            guildManager.createGuild(gName, gp);
+                            p.sendMessage("§aVous avez bien créer la guilde " + gName);
                             guildManager.addGPlayer(gp);
+                            plugin.getLogger().info("GPLAYER CRÉÉ");
+                            return false;
                         }
 
                         if(gp.getGuildUUID() != null) {
@@ -172,9 +206,9 @@ public class GuildCMD implements CommandExecutor {
                             return false;
                         }
 
-                        Player c = Bukkit.getPlayer(args[1]);
+                        OfflinePlayer c = Bukkit.getOfflinePlayerIfCached(args[1]);
                         if(c == null) {
-                            p.sendMessage("§cCe joueur n'existe pas !");
+                            p.sendMessage("§cCe joueur n'a jamais joué !");
                             return false;
                         }
 
@@ -184,6 +218,7 @@ public class GuildCMD implements CommandExecutor {
                         }
 
                         GPlayer gpc = guildManager.getGPlayer(c.getUniqueId());
+
                         if(gpc == null) {
                             gpc = new GPlayer(c.getUniqueId());
                             guildManager.addGPlayer(gpc);
@@ -194,10 +229,13 @@ public class GuildCMD implements CommandExecutor {
                             return false;
                         }
 
-                        Guild g = guildManager.getGuild(gp.getGuildUUID());
-                        gpc.invite(g.getUUID());
+                        gpc.invite(gp.getGuildUUID());
                         p.sendMessage("§aVous avez bien invité " + c.getName() + " dans votre guilde");
-                        c.sendMessage("§aVous avez reçu une invtation pour rejoindre la guilde " + g.getName());
+                        if(c.isOnline()) {
+                            c.getPlayer().sendMessage("§aVous avez reçu une invitation pour rejoindre la guilde " + guildManager.getGuild(gp.getGuildUUID()).getName());
+                            return false;
+                        }
+                        guildManager.inviteMSG(c.getUniqueId(), gp.getGuildUUID());
 
                     }
 
@@ -213,7 +251,7 @@ public class GuildCMD implements CommandExecutor {
                             return false;
                         }
 
-                        Player c = Bukkit.getPlayer(args[1]);
+                        OfflinePlayer c = Bukkit.getOfflinePlayerIfCached((args[1]));
                         if(c == null) {
                             p.sendMessage("§cCe joueur n'existe pas !");
                             return false;
@@ -231,10 +269,17 @@ public class GuildCMD implements CommandExecutor {
                             return false;
                         }
 
+                        if(gpc.getRank().equals(Rank.ADMIN)) {
+                            p.sendMessage("§c/guild lead <player> pour promouvoir d'avantage");
+                            return false;
+                        }
+
                         gpc.promote();
                         p.sendMessage("§aVous avez promu " + c.getName() + " au rang de " + gpc.getRank().getName());
-                        c.sendMessage("§aVous avez été promu au rang de " + gpc.getRank().getName());
-                        //UPDATE PLAYER C
+                        guildManager.updateGPlayer(gpc);
+                        if(c.isOnline()) {
+                            c.getPlayer().sendMessage("§aVous avez été promu au rang de " + gpc.getRank().getName());
+                        }
 
                     }
 
@@ -250,7 +295,7 @@ public class GuildCMD implements CommandExecutor {
                             return false;
                         }
 
-                        Player c = Bukkit.getPlayer(args[1]);
+                        OfflinePlayer c = Bukkit.getOfflinePlayerIfCached(args[1]);
                         if(c == null) {
                             p.sendMessage("§cCe joueur n'existe pas !");
                             return false;
@@ -273,16 +318,17 @@ public class GuildCMD implements CommandExecutor {
                             return false;
                         }
 
-                        if(gpc.getRank().equals(Rank.ADMIN) || gp.getRank().equals(Rank.ADMIN)) {
+                        if(gpc.getRank().equals(Rank.ADMIN) && gp.getRank().equals(Rank.ADMIN)) {
                             p.sendMessage("§cVous ne pouvez pas rétrograder ce joueur !");
                             return false;
                         }
 
                         gpc.demote();
+                        guildManager.updateGPlayer(gpc);
+                        if(c.isOnline()) {
+                            c.getPlayer().sendMessage("§aVous avez été rétrogradé au rang de " + gpc.getRank().getName());
+                        }
                         p.sendMessage("§aVous avez rétrogradé " + c.getName() + " au rang de " + gpc.getRank().getName());
-                        c.sendMessage("§aVous avez été rétrogradé au rang de " + gpc.getRank().getName());
-                        //UPDATE PLAYER C
-
                     }
 
                     //GUILD RANK <JOUEUR>
@@ -292,7 +338,7 @@ public class GuildCMD implements CommandExecutor {
                             return false;
                         }
 
-                        Player c = Bukkit.getPlayer(args[1]);
+                        OfflinePlayer c = Bukkit.getOfflinePlayerIfCached(args[1]);
                         if(c == null) {
                             p.sendMessage("§cCe joueur n'existe pas !");
                             return false;
@@ -311,6 +357,94 @@ public class GuildCMD implements CommandExecutor {
                         }
 
                         p.sendMessage(c.getName() + " §aà le role " + gpc.getRank().getName());
+
+                    }
+
+                    //GUILD LEAD <pseudo>
+                    if(args[0].equalsIgnoreCase("lead")) {
+                        if (gp == null || gp.getGuildUUID() == null) {
+                            p.sendMessage("§cVous n'avez pas de guildes !");
+                            return false;
+                        }
+
+                        OfflinePlayer c = Bukkit.getOfflinePlayerIfCached(args[1]);
+                        if(c == null) {
+                            p.sendMessage("§cCe joueur n'existe pas !");
+                            return false;
+                        }
+
+                        GPlayer gpc = guildManager.getGPlayer(c.getUniqueId());
+                        if(gpc == null || gpc.getGuildUUID() == null) {
+                            p.sendMessage("§cCe joueur n'est pas dans votre guilde !");
+                            return false;
+                        }
+
+                        Guild g = guildManager.getGuild(gp.getGuildUUID());
+                        if(!gpc.getGuildUUID().equals(g.getUUID())) {
+                            p.sendMessage("§cCe joueur n'est pas dans votre guilde !");
+                            return false;
+                        }
+
+                        if(gp.getRank().equals(Rank.OWNER)) {
+                            gp.setRank(Rank.ADMIN);
+                            gpc.setRank(Rank.OWNER);
+                            p.sendMessage("§aVous avez promu " + c.getName() + " au rang d'§cOwner");
+                            if(c.isOnline()) {
+                                c.getPlayer().sendMessage("§aVous avez été promu au rang d'§cOwner");
+                            }
+                            return false;
+                        }
+
+                        p.sendMessage("§cVous n'avez pas la permission de faire cela !");
+
+                    }
+
+                    //GUILD KICK <PSEUDO>
+                    if(args[0].equalsIgnoreCase("kick")) {
+                        if (gp == null || gp.getGuildUUID() == null) {
+                            p.sendMessage("§cVous n'avez pas de guildes !");
+                            return false;
+                        }
+
+                        OfflinePlayer c = Bukkit.getOfflinePlayerIfCached(args[1]);
+                        if(c == null) {
+                            p.sendMessage("§cCe joueur n'existe pas !");
+                            return false;
+                        }
+
+                        GPlayer gpc = guildManager.getGPlayer(c.getUniqueId());
+                        if(gpc == null || gpc.getGuildUUID() == null) {
+                            p.sendMessage("§cCe joueur n'est pas dans votre guilde !");
+                            return false;
+                        }
+
+                        Guild g = guildManager.getGuild(gp.getGuildUUID());
+                        if(!gpc.getGuildUUID().equals(g.getUUID())) {
+                            p.sendMessage("§cCe joueur n'est pas dans votre guilde !");
+                            return false;
+                        }
+
+                        switch(gp.getRank()) {
+                            case MEMBER:
+                                p.sendMessage("§cVous n'avez pas la permission de faire cela !");
+                                return false;
+                            case MODERATOR:
+                                if(!gpc.getRank().equals(Rank.MEMBER)) {
+                                    p.sendMessage("§cVous n'avez pas la permission de faire cela !");
+                                }
+                                return false;
+                            case ADMIN:
+                                if(gpc.getRank().equals(Rank.ADMIN) || gpc.getRank().equals(Rank.OWNER)) {
+                                    p.sendMessage("§cVous n'avez pas la permission de faire cela !");
+                                }
+                                return false;
+                        }
+
+                        guildManager.leaveGuild(gpc);
+                        if(c.isOnline()) {
+                            c.getPlayer().sendMessage("§aVous avez été kick de la guilde !");
+                        }
+                        p.sendMessage("§aVous avez bien kick " + c.getName() + " !");
 
                     }
 
@@ -352,12 +486,12 @@ public class GuildCMD implements CommandExecutor {
                             g.deposit(amount, p);
                             p.sendMessage("§aVous avez bien déposé " + String.valueOf(amount) + " sur la banque de guilde");
                             p.sendMessage("§aNouveau solde: " + g.getBalance());
-                            //UPDATE GUILD G
+                            guildManager.updateGuild(g);
 
                         }
 
                         //GUILD ECO WITHDRAW <MONTANT>
-                        if(args[1].equalsIgnoreCase("deposit")) {
+                        if(args[1].equalsIgnoreCase("withdraw")) {
 
                             Guild g = guildManager.getGuild(gp.getGuildUUID());
                             double amount = Double.parseDouble(args[2]);
@@ -369,7 +503,7 @@ public class GuildCMD implements CommandExecutor {
                             g.withdraw(amount, p);
                             p.sendMessage("§aVous avez bien pris " + String.valueOf(amount) + " sur la banque de guilde");
                             p.sendMessage("§aNouveau solde: " + g.getBalance());
-                            //UPDATE GUILD G
+                            guildManager.updateGuild(g);
 
                         }
 

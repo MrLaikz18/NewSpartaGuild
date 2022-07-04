@@ -1,0 +1,12 @@
+database:
+  host: localhost
+  port: 2203
+  database: db
+  username: root
+  password: password
+
+chat:
+  member: "&aMembre "
+  moderator: "&bModo "
+  admin: "&cAdmin "
+  owner: "&4Fonda "

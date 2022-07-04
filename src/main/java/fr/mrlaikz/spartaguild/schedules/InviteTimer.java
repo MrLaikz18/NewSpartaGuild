@@ -2,6 +2,7 @@ package fr.mrlaikz.spartaguild.schedules;
 
 import fr.mrlaikz.spartaguild.SpartaGuild;
 import fr.mrlaikz.spartaguild.objects.GPlayer;
+import org.bukkit.Bukkit;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.UUID;
