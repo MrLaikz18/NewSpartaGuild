@@ -30,6 +30,20 @@ public class GuildManager {
     private HashMap<UUID, Guild> guildes = new HashMap<UUID, Guild>();
     private HashMap<UUID, GPlayer> gplayers = new HashMap<UUID, GPlayer>();
     private List<Player> spy = new ArrayList<Player>();
+    private List<Player> bypass = new ArrayList<>();
+
+    //BYPASS
+    public boolean isBypass(Player p) {
+        return bypass.contains(p);
+    }
+
+    public void setBypass(Player p) {
+        bypass.add(p);
+    }
+
+    public void removeBypass(Player p) {
+        bypass.remove(p);
+    }
 
     //TEST
     public void info(Player p) {
@@ -72,7 +86,16 @@ public class GuildManager {
         return guildes.get(uuid);
     }
 
-    //VOIDERS
+    //GUILD FUNCTIONS
+    public boolean isValidName(String gName) {
+        for(Guild g : guildes.values()) {
+            if(g.getName().equals(gName)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public void joinGuild(GPlayer gp, Guild guild) {
         Guild g = guildes.get(guild.getUUID());
         GPlayer gpl = gplayers.get(gp.getUUID());
@@ -119,6 +142,28 @@ public class GuildManager {
 
     public GPlayer getGPlayer(UUID uuid) {
         return gplayers.get(uuid);
+    }
+
+    public Guild getGuildByName(String name) {
+        for(Guild g : guildes.values()) {
+            if(g.getName().equals(name)) {
+                return g;
+            }
+        }
+        return null;
+    }
+
+    public void baltop(Player p) {
+        p.sendMessage("");
+        p.sendMessage("§b========== §6§lBaltop §c§lGuildes §b==========");
+        p.sendMessage("");
+        sql.baltopAsync().thenAccept(list -> {
+            int i = 1;
+            for(UUID u : list) {
+               p.sendMessage("§6§l" + String.valueOf(i) + ": " + getGuild(u).getName() + " : §c" + getGuild(u).getBalance());
+               i++;
+            }
+        });
     }
 
     //CHAT

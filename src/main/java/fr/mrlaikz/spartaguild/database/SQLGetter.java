@@ -174,6 +174,22 @@ public class SQLGetter {
         }
     }
 
+    public List<UUID> baltop() {
+        List<UUID> ret = new ArrayList<>();
+        try {
+            PreparedStatement ps = db.prepareStatement("SELECT * FROM guildes ORDER BY balance DESC");
+            ResultSet rs = ps.executeQuery();
+            int i = 0;
+            while(rs.next() && i<=10) {
+                ret.add(UUID.fromString(rs.getString("uuid")));
+                i++;
+            }
+        } catch(SQLException e) {
+            e.printStackTrace();
+        }
+        return ret;
+    }
+
     //ASYNC
     public CompletableFuture<List<Guild>> getAllGuildAsync() {
         return future(() -> getAllGuildes());
@@ -205,6 +221,10 @@ public class SQLGetter {
 
     public CompletableFuture<Void> removeGPlayerAsync(GPlayer gp) {
         return future(() -> removeGPlayer(gp));
+    }
+
+    public CompletableFuture<List<UUID>> baltopAsync() {
+        return future(() -> baltop());
     }
 
     //FUTURE
