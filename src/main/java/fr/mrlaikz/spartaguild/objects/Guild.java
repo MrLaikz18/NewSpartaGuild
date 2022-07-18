@@ -62,6 +62,10 @@ public class Guild {
         members.remove(pl);
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public void disband() {
         members.clear();
     }

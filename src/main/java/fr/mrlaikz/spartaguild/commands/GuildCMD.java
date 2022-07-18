@@ -80,7 +80,7 @@ public class GuildCMD implements CommandExecutor {
                     //GUILD CHAT
                     if(args[0].equalsIgnoreCase("chat")) {
                         if (gp == null || gp.getGuildUUID() == null) {
-                            p.sendMessage("prefix + §cVous n'avez pas de guildes !");
+                            p.sendMessage(prefix + "§cVous n'avez pas de guildes !");
                             return false;
                         }
 
@@ -122,9 +122,11 @@ public class GuildCMD implements CommandExecutor {
                             return false;
                         }
 
-                        if(!gp.getRank().equals(Rank.OWNER) || !guildManager.isBypass(p)) {
-                            p.sendMessage(prefix + "§cVous n'avez pas la permission de faire cela !");
-                            return false;
+                        if(!guildManager.isBypass(p)) {
+                            if(!gp.getRank().equals(Rank.OWNER)) {
+                                p.sendMessage(prefix + "§cVous n'avez pas la permission de faire cela !");
+                                return false;
+                            }
                         }
 
                         guildManager.disbandGuild(gp.getGuildUUID());
@@ -161,19 +163,20 @@ public class GuildCMD implements CommandExecutor {
                         String members = "";
 
                         for(GPlayer gpa : g.getMembers()) {
-                            switch(gpa.getRank()) {
-                                case MEMBER:
-                                    members = members + " " + Bukkit.getOfflinePlayer(gpa.getUUID()).getName();
-                                    break;
-                                case MODERATOR:
-                                    mods = mods + " " + Bukkit.getOfflinePlayer(gpa.getUUID()).getName();
-                                    break;
-                                case ADMIN:
-                                    admins = admins + " " + Bukkit.getOfflinePlayer(gpa.getUUID()).getName();
-                                    break;
-                                case OWNER:
-                                    owner = Bukkit.getOfflinePlayer(gpa.getUUID()).getName();
-                                    break;
+                            if(gpa.getRank().equals(Rank.MEMBER)) {
+                                members = members + Bukkit.getOfflinePlayer(gpa.getUUID()).getName() + " ";
+                            }
+
+                            if(gpa.getRank().equals(Rank.MODERATOR)) {
+                                mods = mods + Bukkit.getOfflinePlayer(gpa.getUUID()).getName() + " ";
+                            }
+
+                            if(gpa.getRank().equals(Rank.ADMIN)) {
+                                admins = admins + Bukkit.getOfflinePlayer(gpa.getUUID()).getName() + " ";
+                            }
+
+                            if(gpa.getRank().equals(Rank.OWNER)) {
+                                owner = Bukkit.getOfflinePlayer(gpa.getUUID()).getName();
                             }
                         }
 
@@ -187,6 +190,7 @@ public class GuildCMD implements CommandExecutor {
 
                     }
 
+                    //GUILD BYPASS
                     if(args[0].equalsIgnoreCase("bypass")) {
                         if(p.hasPermission("spartaguild.bypass")) {
 
@@ -226,10 +230,8 @@ public class GuildCMD implements CommandExecutor {
                     //GUILD SHOW <GUILDE>
                     if(args[0].equalsIgnoreCase("show")) {
 
-                        Guild g;
-                        try {
-                            g = guildManager.getGuildByName(args[1]);
-                        } catch(NullPointerException e) {
+                        Guild g = guildManager.getGuildByName(args[1]);
+                        if(g == null) {
                             p.sendMessage(prefix + "§cCette guilde n'existe pas !");
                             return false;
                         }
@@ -240,19 +242,20 @@ public class GuildCMD implements CommandExecutor {
                         String members = "";
 
                         for(GPlayer gpa : g.getMembers()) {
-                            switch(gpa.getRank()) {
-                                case MEMBER:
-                                    members = members + " " + Bukkit.getOfflinePlayer(gpa.getUUID()).getName();
-                                    break;
-                                case MODERATOR:
-                                    mods = mods + " " + Bukkit.getOfflinePlayer(gpa.getUUID()).getName();
-                                    break;
-                                case ADMIN:
-                                    admins = admins + " " + Bukkit.getOfflinePlayer(gpa.getUUID()).getName();
-                                    break;
-                                case OWNER:
-                                    owner = Bukkit.getOfflinePlayer(gpa.getUUID()).getName();
-                                    break;
+                            if(gpa.getRank().equals(Rank.MEMBER)) {
+                                members = members + Bukkit.getOfflinePlayer(gpa.getUUID()).getName() + " ";
+                            }
+
+                            if(gpa.getRank().equals(Rank.MODERATOR)) {
+                                mods = mods + Bukkit.getOfflinePlayer(gpa.getUUID()).getName() + " ";
+                            }
+
+                            if(gpa.getRank().equals(Rank.ADMIN)) {
+                                admins = admins + Bukkit.getOfflinePlayer(gpa.getUUID()).getName() + " ";
+                            }
+
+                            if(gpa.getRank().equals(Rank.OWNER)) {
+                                owner = Bukkit.getOfflinePlayer(gpa.getUUID()).getName();
                             }
                         }
 
@@ -345,10 +348,13 @@ public class GuildCMD implements CommandExecutor {
                             return false;
                         }
 
-                        if(gp.getRank().equals(Rank.MEMBER) || !guildManager.isBypass(p)) {
-                            p.sendMessage(prefix + "§cVous n'avez pas la permission de faire cela !");
-                            return false;
+                        if(!guildManager.isBypass(p)) {
+                            if(gp.getRank().equals(Rank.MEMBER)) {
+                                p.sendMessage(prefix + "§cVous n'avez pas la permission de faire cela !");
+                                return false;
+                            }
                         }
+
 
                         GPlayer gpc = guildManager.getGPlayer(c.getUniqueId());
 
@@ -379,9 +385,11 @@ public class GuildCMD implements CommandExecutor {
                             return false;
                         }
 
-                        if(gp.getRank().equals(Rank.MEMBER) || gp.getRank().equals(Rank.MODERATOR) || !guildManager.isBypass(p)) {
-                            p.sendMessage(prefix + "§cVous n'avez pas la permission de faire cela !");
-                            return false;
+                        if(!guildManager.isBypass(p)) {
+                            if(gp.getRank().equals(Rank.MEMBER) || gp.getRank().equals(Rank.MODERATOR)) {
+                                p.sendMessage(prefix + "§cVous n'avez pas la permission de faire cela !");
+                                return false;
+                            }
                         }
 
                         OfflinePlayer c = Bukkit.getOfflinePlayerIfCached((args[1]));
@@ -428,9 +436,11 @@ public class GuildCMD implements CommandExecutor {
                             return false;
                         }
 
-                        if(gp.getRank().equals(Rank.MEMBER) || gp.getRank().equals(Rank.MODERATOR) || !guildManager.isBypass(p)) {
-                            p.sendMessage(prefix + "§cVous n'avez pas la permission de faire cela !");
-                            return false;
+                        if(!guildManager.isBypass(p)) {
+                            if(gp.getRank().equals(Rank.MEMBER) || gp.getRank().equals(Rank.MODERATOR)) {
+                                p.sendMessage(prefix + "§cVous n'avez pas la permission de faire cela !");
+                                return false;
+                            }
                         }
 
                         OfflinePlayer c = Bukkit.getOfflinePlayerIfCached(args[1]);
@@ -610,6 +620,27 @@ public class GuildCMD implements CommandExecutor {
 
                     }
 
+                    //GUILD SETNAME <STRING>
+                    if(args[0].equalsIgnoreCase("setname")) {
+                        if (gp == null || gp.getGuildUUID() == null) {
+                            p.sendMessage(prefix + "§cVous n'avez pas de guildes !");
+                            return false;
+                        }
+
+                        if(!guildManager.isBypass(p)) {
+                            if (!gp.getRank().equals(Rank.OWNER)) {
+                                p.sendMessage(prefix + "§cVous n'avez pas la permission de faire cela !");
+                                return false;
+                            }
+                        }
+
+                        Guild g = guildManager.getGuild(gp.getGuildUUID());
+                        g.setName(args[1]);
+                        p.sendMessage(prefix + "§aLe nom de guilde a bien été modifié");
+                        guildManager.updateGuild(g);
+
+                    }
+
                     //GUILD ECO BAL
                     if(args[0].equalsIgnoreCase("eco") && args[1].equalsIgnoreCase("bal")) {
                         if (gp == null || gp.getGuildUUID() == null) {
@@ -662,6 +693,13 @@ public class GuildCMD implements CommandExecutor {
 
                             //GUILD ECO WITHDRAW <MONTANT>
                             if (args[1].equalsIgnoreCase("withdraw")) {
+
+                                if(!guildManager.isBypass(p)) {
+                                    if (!gp.getRank().equals(Rank.ADMIN) || gp.getRank().equals(Rank.OWNER)) {
+                                        p.sendMessage(prefix + "§cVous n'avez pas la permission de faire cela !");
+                                        return false;
+                                    }
+                                }
 
                                 Guild g = guildManager.getGuild(gp.getGuildUUID());
                                 double amount = Double.parseDouble(args[2]);

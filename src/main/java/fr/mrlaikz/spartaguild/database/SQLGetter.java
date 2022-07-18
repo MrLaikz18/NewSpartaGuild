@@ -114,9 +114,10 @@ public class SQLGetter {
     //UPDATE GUILD
     public void updateGuild(Guild g) {
         try {
-            PreparedStatement ps = db.prepareStatement("UPDATE guildes SET balance = ? WHERE uuid = ?");
+            PreparedStatement ps = db.prepareStatement("UPDATE guildes SET balance = ?, name = ? WHERE uuid = ?");
             ps.setDouble(1, g.getBalance());
-            ps.setString(2, g.getUUID().toString());
+            ps.setString(2, g.getName());
+            ps.setString(3, g.getUUID().toString());
             ps.executeUpdate();
         } catch(SQLException e) {
             e.printStackTrace();
